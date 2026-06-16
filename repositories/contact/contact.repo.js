@@ -1,4 +1,4 @@
-import { Contact } from "../models/contact.model.js";
+import { Contact } from "../../models/contact/contact.model.js";
 
 const contactRepo = {
     contactAdd: async (firstName, lastName, phoneNumber, email, message) => {

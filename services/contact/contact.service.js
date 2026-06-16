@@ -1,5 +1,5 @@
-import contactRepo from "../repositories/contact.repo.js";
-import sendEmail from "../config/sendEmail.js";
+import contactRepo from "../../repositories/contact/contact.repo.js";
+import sendEmail from "../../config/sendEmail.js";
 
 const contactService = {
     contactAdd: async (firstName, lastName, phoneNumber, email, message) => {

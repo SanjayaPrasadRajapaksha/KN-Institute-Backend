@@ -1,4 +1,4 @@
-import contactService from "../services/contact.service.js";
+import contactService from "../../services/contact/contact.service.js";
 
 
 const contactController = {

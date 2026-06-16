@@ -1,4 +1,4 @@
-import sequelize from "../config/db.config.js";
+import sequelize from "../../config/db.config.js";
 import { DataTypes } from "sequelize";
 
 export const Contact = sequelize.define(
