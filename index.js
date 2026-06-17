@@ -6,6 +6,7 @@ import sequelize from "./config/db.config.js";
 import contactRoutes from "./routes/contact/contact.route.js";
 import adminRoutes from "./routes/user/admin.route.js";
 import roleRoutes from "./routes/user/role.route.js";
+import feedbackRoutes from "./routes/feedback/feedback.route.js";
 
 dotenv.config();
 const app = express();
@@ -40,7 +41,7 @@ sequelize
 app.use("/api/contact", contactRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/role", roleRoutes);
-
+app.use("/api/feedback", feedbackRoutes);
 // Run server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
