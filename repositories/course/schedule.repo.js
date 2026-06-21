@@ -1,13 +1,13 @@
-import Feedback from "../../models/feedback/feedback.model.js";
+import Schedule from "../../models/course/schedule.model.js";
 
-const FeedbackRepo = {
-    create: async (name, message, rate) => {
+const ScheduleRepo = {
+    create: async (day, start_time, end_time) => {
         try {
 
-            const result = await Feedback.create({
-                name: name,
-                message: message,
-                rate: rate
+            const result = await Schedule.create({
+                day: day,
+                start_time: start_time,
+                end_time: end_time
             });
             return result;
         } catch (error) {
@@ -17,7 +17,7 @@ const FeedbackRepo = {
 
     findById: async (id) => {
         try {
-            const result = await Feedback.findOne({
+            const result = await Schedule.findOne({
                 where: {
                     id: id,
                 },
@@ -31,7 +31,7 @@ const FeedbackRepo = {
 
     getAll: async () => {
         try {
-            const result = await Feedback.findAll({
+            const result = await Schedule.findAll({
             });
             return result;
         } catch (err) {
@@ -41,7 +41,7 @@ const FeedbackRepo = {
 
     deleteById: async (id) => {
         try {
-            const result = await Feedback.destroy({
+            const result = await Schedule.destroy({
                 where: {
                     id: id,
                 },
@@ -53,21 +53,22 @@ const FeedbackRepo = {
         }
     },
 
-    verifyById: async (id, status) => {
+    updateById: async (id, day, start_time, end_timet) => {
         try {
-            const result = await Feedback.update({
-                verified: status
+            const result = await Schedule.update({
+                day: day,
+                start_time: start_time,
+                end_time: end_timet
             }, {
                 where: {
-                    id: id
-                }
+                    id: id,
+                },
+
             });
-            return result[0];
-        } catch (error) {
-            throw error;
+            return result;
+        } catch (err) {
+            throw err;
         }
     },
 }
-
-
-export default FeedbackRepo;
+export default ScheduleRepo;

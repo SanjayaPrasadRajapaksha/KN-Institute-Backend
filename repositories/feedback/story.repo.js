@@ -1,13 +1,12 @@
-import Feedback from "../../models/feedback/feedback.model.js";
+import Story from "../../models/feedback/story.model.js";
 
-const FeedbackRepo = {
-    create: async (name, message, rate) => {
+const StoryRepo = {
+    create: async (name, message) => {
         try {
 
-            const result = await Feedback.create({
+            const result = await Story.create({
                 name: name,
-                message: message,
-                rate: rate
+                message: message
             });
             return result;
         } catch (error) {
@@ -17,7 +16,7 @@ const FeedbackRepo = {
 
     findById: async (id) => {
         try {
-            const result = await Feedback.findOne({
+            const result = await Story.findOne({
                 where: {
                     id: id,
                 },
@@ -31,7 +30,7 @@ const FeedbackRepo = {
 
     getAll: async () => {
         try {
-            const result = await Feedback.findAll({
+            const result = await Story.findAll({
             });
             return result;
         } catch (err) {
@@ -41,7 +40,7 @@ const FeedbackRepo = {
 
     deleteById: async (id) => {
         try {
-            const result = await Feedback.destroy({
+            const result = await Story.destroy({
                 where: {
                     id: id,
                 },
@@ -55,7 +54,7 @@ const FeedbackRepo = {
 
     verifyById: async (id, status) => {
         try {
-            const result = await Feedback.update({
+            const result = await Story.update({
                 verified: status
             }, {
                 where: {
@@ -70,4 +69,4 @@ const FeedbackRepo = {
 }
 
 
-export default FeedbackRepo;
+export default StoryRepo;
