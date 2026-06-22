@@ -41,6 +41,14 @@ export const Admin = sequelize.define(
         suspended_status: {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
+        }, 
+        otp: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        otpExpiryTime: {
+            type: DataTypes.DATE,
+            allowNull: true
         },
     },
     {

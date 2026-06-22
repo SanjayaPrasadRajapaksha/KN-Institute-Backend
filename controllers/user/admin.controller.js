@@ -24,21 +24,21 @@ const adminController = {
     },
 
 
-    registerAdmin: async (req, res) => {
-        try {
-            const { email, password, name, role_id } = req.body;
-            if (!email || !password || !name || !role_id) {
-                return res.status(400).json({ response_code: 400, success: false, message: 'Missing required fields: email, password, name, role_id' });
-            }
-            const result = await adminService.adminRegistration(email, password, name, role_id);
-            if (!result || !result.status) {
-                return res.status(400).json({ response_code: 400, error: result ? result.message : 'Registration failed' });
-            }
-            return res.status(201).json({ response_code: 201, success: true, message: result.message, result: result.data });
-        } catch (error) {
-            res.status(500).json({ response_code: 500, success: false, message: error.message });
-        }
-    },
+    // registerAdmin: async (req, res) => {
+    //     try {
+    //         const { email, password, name, role_id } = req.body;
+    //         if (!email || !password || !name || !role_id) {
+    //             return res.status(400).json({ response_code: 400, success: false, message: 'Missing required fields: email, password, name, role_id' });
+    //         }
+    //         const result = await adminService.adminRegistration(email, password, name, role_id);
+    //         if (!result || !result.status) {
+    //             return res.status(400).json({ response_code: 400, error: result ? result.message : 'Registration failed' });
+    //         }
+    //         return res.status(201).json({ response_code: 201, success: true, message: result.message, result: result.data });
+    //     } catch (error) {
+    //         res.status(500).json({ response_code: 500, success: false, message: error.message });
+    //     }
+    // },
 
     superAdminRegistration: async (req, res) => {
         try {
@@ -220,7 +220,7 @@ const adminController = {
         }
     },
 
-       deleteAdminById: async (req, res) => {
+    deleteAdminById: async (req, res) => {
 
         try {
             const id = req.params.id;
@@ -243,6 +243,54 @@ const adminController = {
                 response_code: 500,
                 status: false,
                 message: error.message
+            });
+        }
+    },
+
+    sendOTP: async (req, res) => {
+        const { email } = req.body;
+        try {
+            const result = await adminService.generateAndSendOTP(email);
+
+            if (!result.status) {
+                // If status is false, return status 400 with the error message
+                res.status(400).json({ response_code: 400, message: result.message });
+            } else {
+                // If status is true, return status 200 with the success message and token
+                res.status(200).json({ response_code: 200, message: result.message });
+            }
+        } catch (error) {
+            console.error('Error submitting request form:', error);
+            return res.status(500).json({
+                response_code: 500,
+                status: false,
+                message: 'Internal server error',
+            });
+        }
+    },
+
+    validateOTPForFPW: async (req, res) => {
+        const { email, enteredOTP, newPassword } = req.body;
+        try {
+            const result = await adminService.validateOTPForFPW(email, enteredOTP, newPassword);
+            if (!result || !result.status) {
+                return res.status(400).json({
+                    response_code: 400,
+                    status: false,
+                    message: result && result.message ? result.message : "Invalid Credentials",
+                });
+            } else {
+                return res.status(200).json({
+                    response_code: 200,
+                    status: true,
+                    message: "Password changed successfully",
+                });
+            }
+        } catch (error) {
+            return res.status(500).json({
+                response_code: 500,
+                status: false,
+                message: 'Internal server error',
             });
         }
     },

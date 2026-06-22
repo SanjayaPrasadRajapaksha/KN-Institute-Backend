@@ -23,7 +23,7 @@ const sendEmail = async (email, firstName, lastName) => {
 
     <div style="padding:35px;">
       <h2 style="color:#333;">
-        Hello ${firstName} ${lastName},
+        Hello ${firstName},
       </h2>
 
       <p style="font-size:16px; color:#555; line-height:1.8;">
@@ -43,8 +43,8 @@ const sendEmail = async (email, firstName, lastName) => {
 
     <div style="background:#f8fafc; padding:20px; text-align:center; color:#777;">
       Best Regards,<br>
-      <strong>The Team</strong><br><br>
-      © ${new Date().getFullYear()} Your Company. All rights reserved.
+      <strong>Japanese KN Institute</strong><br><br>
+      © ${new Date().getFullYear()} NexOra. All rights reserved.
     </div>
 
   </div>
@@ -52,7 +52,7 @@ const sendEmail = async (email, firstName, lastName) => {
 `;
 
     const mailOptions = {
-      from: `"Your Company" <${process.env.USER_EMAIL}>`,
+      from: `"Japanese KN Institute" <${process.env.USER_EMAIL}>`,
       to: email,
       subject: "Thank You for Contacting Us!",
       html: thankMessage, // Use html instead of text

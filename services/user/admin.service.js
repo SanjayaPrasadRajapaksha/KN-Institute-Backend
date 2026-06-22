@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { sendEmail } from "../../config/adminEmail.js";
 import adminRepo from "../../repositories/user/admin.repo.js";
 import RoleRepo from "../../repositories/user/role.repo.js";
+import sendOTP from "../../config/sendOTP.js";
 
 const adminService = {
 
@@ -45,53 +46,53 @@ const adminService = {
         }
     },
 
-    adminRegistration: async (email, password, name, role_id) => {
-        try {
-            const encrypted_pw = await bcrypt.hash(password, 10);
+//     adminRegistration: async (email, password, name, role_id) => {
+//         try {
+//             const encrypted_pw = await bcrypt.hash(password, 10);
 
-            const existingUser = await adminRepo.getAdminByEmail(email);
-            if (existingUser) {
-                return {
-                    status: false,
-                    message: "User with this email already exists.",
-                };
-            }
+//             const existingUser = await adminRepo.getAdminByEmail(email);
+//             if (existingUser) {
+//                 return {
+//                     status: false,
+//                     message: "User with this email already exists.",
+//                 };
+//             }
 
-            const role = await RoleRepo.findById(role_id);
-            if (!role) {
-                return {
-                    status: false,
-                    message: "Invalid role ID provided.",
-                };
-            }
+//             const role = await RoleRepo.findById(role_id);
+//             if (!role) {
+//                 return {
+//                     status: false,
+//                     message: "Invalid role ID provided.",
+//                 };
+//             }
 
-            // Create user account
-            const user = await adminRepo.registerAdmin(email, encrypted_pw, name, role.id);
+//             // Create user account
+//             const user = await adminRepo.registerAdmin(email, encrypted_pw, name, role.id);
 
-            const credentialMessage = `
-Dear ${name},<br><br>
+//             const credentialMessage = `
+// Dear ${name},<br><br>
 
-Your admin account has been successfully created. Below are your login credentials:<br><br>
+// Your admin account has been successfully created. Below are your login credentials:<br><br>
 
-<b>Email:</b> ${email}<br>
-<b>Password:</b> ${password}<br><br>
+// <b>Email:</b> ${email}<br>
+// <b>Password:</b> ${password}<br><br>
 
-For security reasons, please log in and change your password immediately after your first login.<br><br>
+// For security reasons, please log in and change your password immediately after your first login.<br><br>
 
-Best regards,<br>
-Tupnow Team
-`;
-            await sendEmail(email, "Admin Account Credentials", credentialMessage);
-            return {
-                status: true,
-                message: "Admin registered successfully!",
-                data: user,
-            };
-        } catch (error) {
-            console.error("Error in adminRegistration:", error);
-            throw error;
-        }
-    },
+// Best regards,<br>
+// Tupnow Team
+// `;
+//             await sendEmail(email, "Admin Account Credentials", credentialMessage);
+//             return {
+//                 status: true,
+//                 message: "Admin registered successfully!",
+//                 data: user,
+//             };
+//         } catch (error) {
+//             console.error("Error in adminRegistration:", error);
+//             throw error;
+//         }
+//     },
 
     adminLogin: async (email, password) => {
         try {
@@ -275,6 +276,108 @@ Tupnow Team
                 return { status: true, message: "Admin deleted successfully!" };
             } else {
                 return { status: false, message: "Error when deleting admin!" };
+            }
+        } catch (error) {
+            throw error;
+        }
+    },
+    generateAndSendOTP: async (email) => {
+        try {
+            const exUser = await adminRepo.getUserByEmail(email);
+            if (!exUser?.[0]) {
+                return {
+                    status: false,
+                    message: "Admin data not found!",
+                };
+            }
+
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+            const otpHashed = await bcrypt.hash(otp, 10);
+            const expiration = new Date(Date.now() + 300000); // OTP expires in 5 minutes
+            const result = await adminRepo.storeOTP(
+                exUser[0].id,
+                otpHashed,
+                expiration
+            );
+            if (!result) {
+                return {
+                    status: false,
+                    message: "Failed to save OTP in database!",
+                };
+            }
+
+            await sendOTP(email, exUser[0].name, otp);
+            return {
+                status: true,
+                message: "OTP sent to email!",
+            };
+
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    validateOTPForFPW: async (email, enteredOTP, newPassword) => {
+        try {
+            const exUser = await adminRepo.getUserByEmail(email);
+            if (!exUser?.[0]) {
+                return {
+                    status: false,
+                    message: "Admin data not found!",
+                };
+            }
+            if (exUser[0]) {
+                const storedOTP = await adminRepo.getStroedOTPByEmail(exUser[0].email);
+
+                if (!storedOTP?.otp || !storedOTP?.expiryTime) {
+                    return {
+                        status: false,
+                        message: "OTP not found!",
+                    };
+                }
+
+                const expiryTime = new Date(storedOTP.expiryTime);
+                if (Number.isNaN(expiryTime.getTime())) {
+                    return {
+                        status: false,
+                        message: "OTP not found!",
+                    };
+                }
+
+                if (Date.now() >= expiryTime.getTime()) {
+                    return {
+                        status: false,
+                        message: "Invalid OTP or expired.",
+                    };
+                }
+                const otpMatch = await bcrypt.compare(enteredOTP, storedOTP.otp);
+
+                if (!otpMatch) {
+                    return {
+                        status: false,
+                        message: "Incorrect OTP!",
+                    };
+                }
+                if (Date.now() < expiryTime.getTime()) {
+                    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+                    const result = await adminRepo.changeUserPasswordByEmail(
+                        exUser[0].email,
+                        hashedNewPassword
+                    );
+                    await adminRepo.clearStoredOTP(exUser[0].email);
+                    return {
+                        status: true,
+                        message: "Password updated successfully",
+                    };
+                } else {
+                    return {
+                        status: false,
+                        message: "Invalid OTP or expired.",
+                    };
+                }
+            } else {
+                return { status: false, message: "Invalid credentials." };
             }
         } catch (error) {
             throw error;
